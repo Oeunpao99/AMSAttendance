@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance Management System</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-bg: #f5f7fa;
+        --card-bg: #ffffff;
+        --border-color: #e0e6ed;
+        --admin-color: #9b59b6;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--light-bg);
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background: var(--primary-color);
+        color: white;
+        padding: 20px;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .logo i {
+        font-size: 24px;
+        color: var(--secondary-color);
+      }
+
+      .logo h1 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
+        color: #ddd;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.3s;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      .nav-link i {
+        width: 24px;
+        text-align: center;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 25px;
+        overflow-y: auto;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .header h2 {
+        font-size: 24px;
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .semester-info {
+        background: var(--secondary-color);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+
+      .admin-header {
+        background: var(--admin-color);
+      }
+
+      /* Filters */
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+        position: relative;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .filter-group select,
+      .filter-group input {
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: white;
+        font-size: 14px;
+      }
+
+      .active-filters {
+        position: absolute;
+        top: -10px;
+        right: 20px;
+        background: var(--secondary-color);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        display: none;
+      }
+
+      /* Summary Cards */
+      .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+      }
+
+      .card-icon.students {
+        background: rgba(52, 152, 219, 0.15);
+        color: var(--secondary-color);
+      }
+
+      .card-icon.attendance {
+        background: rgba(46, 204, 113, 0.15);
+        color: var(--success-color);
+      }
+
+      .card-icon.absent {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-color);
+      }
+
+      .card-icon.admin {
+        background: rgba(155, 89, 182, 0.15);
+        color: var(--admin-color);
+      }
+
+      .card-info h3 {
+        font-size: 14px;
+        color: #777;
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .card-info .value {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      /* Course Tabs */
+      .course-tabs {
+        background: var(--card-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+      }
+
+      .tabs-header {
+        display: flex;
+        background: var(--primary-color);
+        padding: 0 20px;
+        overflow-x: auto;
+      }
+
+      .tab {
+        padding: 15px 25px;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+        white-space: nowrap;
+      }
+
+      .tab.active {
+        color: white;
+        border-bottom: 3px solid var(--secondary-color);
+      }
+
+      .tab-content {
+        padding: 20px;
+      }
+
+      .week-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .week-btn {
+        padding: 8px 15px;
+        background: #f0f4f8;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .week-btn:hover {
+        background: #e0e6ed;
+      }
+
+      .week-btn.active {
+        background: var(--secondary-color);
+        color: white;
+      }
+
+      /* Attendance Table */
+      .table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1300px;
+      }
+
+      th,
+      td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        background-color: var(--secondary-color);
+        color: white;
+        position: sticky;
+        top: 0;
+        font-weight: 600;
+      }
+
+      tbody tr {
+        background: var(--card-bg);
+      }
+
+      tbody tr:nth-child(even) {
+        background: #f9fbfd;
+      }
+
+      tbody tr:hover {
+        background: #f0f7ff;
+      }
+
+      .attendance-cell {
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .present {
+        color: var(--success-color);
+      }
+
+      .absent {
+        color: var(--danger-color);
+      }
+
+      .attendance-marker {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        line-height: 24px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      /* Semester Summary */
+      .semester-summary {
+        margin-top: 30px;
+      }
+
+      .summary-title {
+        font-size: 20px;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .summary-card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .summary-card h3 {
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .course-attendance {
+        margin-top: 15px;
+      }
+
+      .course-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .progress-bar {
+        height: 8px;
+        background: #eee;
+        border-radius: 4px;
+        margin-top: 5px;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        background-color: var(--success-color);
+        border-radius: 4px;
+      }
+
+      /* Admin Panel */
+      .admin-panel {
+        display: none;
+        padding: 25px;
+      }
+
+      .admin-controls {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+      }
+
+      .admin-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      .btn-admin {
+        background: var(--admin-color);
+      }
+
+      .btn-save {
+        background: var(--success-color);
+      }
+
+      .attendance-options {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .attendance-option {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      /* Login Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .modal-header h2 {
+        color: var(--primary-color);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 16px;
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .filters {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Admin Login</h2>
+        </div>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Enter admin username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter password" />
+        </div>
+        <div class="form-actions">
+          <button
+            class="btn"
+            onclick="document.getElementById('loginModal').style.display='none'"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-admin" onclick="login()">Login</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <h1>Attendance System</h1>
+        </div>
+        <div class="nav-links">
+          <a href="#" class="nav-link active" data-view="dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+          </a>
+          <a href="#" class="nav-link" data-view="admin" id="adminLink">
+            <i class="fas fa-user-shield"></i>
+            Admin Portal
+          </a>
+          <a href="#" class="nav-link">
+            <i class="fas fa-book"></i>
+            Courses
+          </a>
+          <a href="#" class="nav-link">
+            <i class="fas fa-calendar-check"></i>
+            Attendance
+          </a>
+          <a href="#" class="nav-link">
+            <i class="fas fa-user"></i>
+            Profile
+          </a>
+          <a href="#" class="nav-link" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Content - Dashboard -->
+      <div class="main-content" id="dashboardContent">
+        <div class="header">
+          <h2>Student Attendance Dashboard</h2>
+          <div class="semester-info">
+            <i class="fas fa-calendar-alt"></i> Semester 1 | Week 8 of 18
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="active-filters" id="active-filters"></div>
+
+          <div class="filter-group">
+            <label>Course</label>
+            <select id="filter-course">
+              <option value="">All Courses</option>
+              <option value="Big Data">Big Data</option>
+              <option value="PGM">PGM</option>
+              <option value="Database">Database</option>
+              <option value="Economics">Economics for Engineering</option>
+              <option value="Distributed">Distributed System</option>
+              <option value="Data Visualization">Data Visualization</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Session Type</label>
+            <select id="filter-type">
+              <option value="">All Types</option>
+              <option value="TP">TP (Practical)</option>
+              <option value="Course">Course (Lecture)</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Semester</label>
+            <select id="filter-semester">
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Student</label>
+            <select id="filter-student">
+              <option value="">All Students</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Search by Name</label>
+            <input
+              type="text"
+              id="search-name"
+              placeholder="Enter student name"
+            />
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon students">
+                <i class="fas fa-users fa-2x"></i>
+              </div>
+              <div class="card-info">
+                <h3>Total Students</h3>
+                <div class="value" id="total-students">49</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon attendance">
+                <i class="fas fa-check-circle fa-2x"></i>
+              </div>
+              <div class="card-info">
+                <h3>Overall Attendance</h3>
+                <div class="value" id="overall-attendance">94.2%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="absent-card">
+            <div class="card-header">
+              <div class="card-icon absent">
+                <i class="fas fa-user-times fa-2x"></i>
+              </div>
+              <div class="card-info">
+                <h3>Absent This Week</h3>
+                <div class="value" id="absent-this-week">3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Tabs -->
+        <div class="course-tabs">
+          <div class="tabs-header">
+            <div class="tab active" data-course="all">All Courses</div>
+            <div class="tab" data-course="Big Data">Big Data</div>
+            <div class="tab" data-course="PGM">PGM</div>
+            <div class="tab" data-course="Database">Database</div>
+            <div class="tab" data-course="Economics">Economics</div>
+            <div class="tab" data-course="Distributed">Distributed System</div>
+            <div class="tab" data-course="Data Visualization">
+              Data Visualization
+            </div>
+          </div>
+
+          <div class="tab-content">
+            <div class="week-selector">
+              <button class="week-btn active">Week 1</button>
+              <button class="week-btn">Week 2</button>
+              <button class="week-btn">Week 3</button>
+              <button class="week-btn">Week 4</button>
+              <button class="week-btn">Week 5</button>
+              <button class="week-btn">Week 6</button>
+              <button class="week-btn">Week 7</button>
+              <button class="week-btn">Week 8</button>
+              <button class="week-btn">Week 9</button>
+              <button class="week-btn">Week 10</button>
+              <button class="week-btn">Week 11</button>
+              <button class="week-btn">Week 12</button>
+              <button class="week-btn">Week 13</button>
+              <button class="week-btn">Week 14</button>
+              <button class="week-btn">Week 15</button>
+              <button class="week-btn">Week 16</button>
+              <button class="week-btn">Week 17</button>
+              <button class="week-btn">Week 18</button>
+            </div>
+
+            <div class="table-container">
+              <table id="attendance-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Student Name</th>
+                    <th data-course="Big Data" data-type="TP">Big Data (TP)</th>
+                    <th data-course="Big Data" data-type="Course">
+                      Big Data (Course)
+                    </th>
+                    <th data-course="PGM" data-type="TP">PGM (TP)</th>
+                    <th data-course="PGM" data-type="Course">PGM (Course)</th>
+                    <th data-course="Database" data-type="TP">Database (TP)</th>
+                    <th data-course="Database" data-type="Course">
+                      Database (Course)
+                    </th>
+                    <th data-course="Economics" data-type="Course">
+                      Economics (Course)
+                    </th>
+                    <th data-course="Distributed" data-type="TP">
+                      Distributed System (TP)
+                    </th>
+                    <th data-course="Distributed" data-type="Course">
+                      Distributed System (Course)
+                    </th>
+                    <th data-course="Data Visualization" data-type="TP">
+                      Data Visualization (TP)
+                    </th>
+                    <th data-course="Data Visualization" data-type="Course">
+                      Data Visualization (Course)
+                    </th>
+                    <th>Total Absent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Attendance data will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Semester Summary -->
+        <div class="semester-summary">
+          <div class="summary-title">Semester Attendance Summary</div>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <h3>Overall Attendance</h3>
+              <div class="overall-stats">
+                <div class="course-row">
+                  <span>Total Classes:</span>
+                  <strong id="total-classes">0</strong>
+                </div>
+                <div class="course-row">
+                  <span>Total Absences:</span>
+                  <strong id="total-absences">0</strong>
+                </div>
+                <div class="course-row">
+                  <span>Attendance Rate:</span>
+                  <strong id="attendance-rate" style="color: #2ecc71"
+                    >0%</strong
+                  >
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress"
+                  id="attendance-progress"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h3>Attendance by Course</h3>
+              <div class="course-attendance" id="course-attendance">
+                <!-- Course attendance will be populated here -->
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h3>Top Students</h3>
+              <div class="student-attendance" id="top-students">
+                <!-- Top students will be populated here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Panel -->
+      <div class="admin-panel" id="adminPanel">
+        <div class="header">
+          <h2>Admin Portal</h2>
+          <div class="semester-info admin-header">
+            <i class="fas fa-user-shield"></i> Attendance Management
+          </div>
+        </div>
+
+        <div class="admin-controls">
+          <div class="admin-form">
+            <div class="filter-group">
+              <label>Select Course</label>
+              <select id="admin-course">
+                <option value="Big Data">Big Data</option>
+                <option value="PGM">PGM</option>
+                <option value="Database">Database</option>
+                <option value="Economics">Economics for Engineering</option>
+                <option value="Distributed">Distributed System</option>
+                <option value="Data Visualization">Data Visualization</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Session Type</label>
+              <select id="admin-type">
+                <option value="TP">TP (Practical)</option>
+                <option value="Course">Course (Lecture)</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Select Week</label>
+              <select id="admin-week">
+                <option value="1">Week 1</option>
+                <option value="2">Week 2</option>
+                <option value="3">Week 3</option>
+                <option value="4">Week 4</option>
+                <option value="5">Week 5</option>
+                <option value="6">Week 6</option>
+                <option value="7">Week 7</option>
+                <option value="8" selected>Week 8</option>
+                <option value="9">Week 9</option>
+                <option value="10">Week 10</option>
+                <option value="11">Week 11</option>
+                <option value="12">Week 12</option>
+                <option value="13">Week 13</option>
+                <option value="14">Week 14</option>
+                <option value="15">Week 15</option>
+                <option value="16">Week 16</option>
+                <option value="17">Week 17</option>
+                <option value="18">Week 18</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Semester</label>
+              <select id="admin-semester">
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2">Semester 2</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-admin" onclick="loadAttendanceForEdit()">
+            <i class="fas fa-sync"></i> Load Attendance
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table id="admin-attendance-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Student Name</th>
+                <th>Attendance</th>
+              </tr>
+            </thead>
+            <tbody id="admin-attendance-body">
+              <!-- Admin attendance data will be populated here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px">
+          <button class="btn btn-save" onclick="saveAttendance()">
+            <i class="fas fa-save"></i> Save Attendance Records
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Student list
+      const students = [
+        { no: 1, id: "e20211125", name: "AN HENGHENG", gender: "M" },
+        { no: 2, id: "e20210271", name: "BO SANE", gender: "F" },
+        { no: 3, id: "e20210320", name: "BUN RATNATEPY", gender: "F" },
+        { no: 4, id: "e20211081", name: "CHAN SOPHARA", gender: "M" },
+        { no: 5, id: "e20210871", name: "CHEA PISETH", gender: "M" },
+        { no: 6, id: "e20210742", name: "CHHIN VISAL", gender: "M" },
+        { no: 7, id: "e20211474", name: "CHHON MENGHOUT", gender: "M" },
+        { no: 8, id: "e20210537", name: "CHHORN SOLITA", gender: "F" },
+        { no: 9, id: "e20210294", name: "CHHRAN MOSES", gender: "M" },
+        { no: 10, id: "e20211542", name: "CHUM RATANAKCHENTRIA", gender: "F" },
+        { no: 11, id: "e20201096", name: "DEN SOKUNPIDOR", gender: "M" },
+        { no: 12, id: "e20210337", name: "DOK DOMINIQUE", gender: "F" },
+        { no: 13, id: "e20210085", name: "EN SREY TOCH", gender: "F" },
+        { no: 14, id: "e20210084", name: "EN SREYTHOM", gender: "F" },
+        { no: 15, id: "e20210914", name: "ENG SIVE EU", gender: "F" },
+        { no: 16, id: "e20211502", name: "HAYSAVIN RONGRAVIDWIN", gender: "M" },
+        { no: 17, id: "e20210329", name: "HENG SEAKLONG", gender: "M" },
+        { no: 18, id: "e20210931", name: "HENG SOPHANHA", gender: "M" },
+        { no: 19, id: "e20200291", name: "HENGPA VISAL", gender: "M" },
+        { no: 20, id: "e20210954", name: "HUON SITHAI", gender: "M" },
+        { no: 21, id: "e20210603", name: "HUTH SAKDA", gender: "M" },
+        { no: 22, id: "e20210519", name: "ING VITOUROTANAK", gender: "M" },
+        { no: 23, id: "e20210527", name: "KANG PENGKHEANG", gender: "M" },
+        { no: 24, id: "e20211040", name: "KHEM LYHOURT", gender: "M" },
+        { no: 25, id: "e20210176", name: "KHON KHENGMENG", gender: "M" },
+        { no: 26, id: "e20211527", name: "KHUN SITHANUT", gender: "M" },
+        { no: 27, id: "e20200497", name: "KONG CHANRAKSA", gender: "F" },
+        { no: 28, id: "e20210963", name: "KONG SATTHA", gender: "M" },
+        { no: 29, id: "e20211537", name: "KONG SEREYRATHA", gender: "M" },
+        { no: 30, id: "e20210574", name: "KOSAL CHANSOTHAY", gender: "M" },
+        { no: 31, id: "e20211754", name: "KOUM SOKNAN", gender: "M" },
+        { no: 32, id: "e20200014", name: "LAB THAVRITH", gender: "M" },
+        { no: 33, id: "e20200413", name: "LENG MOUYHONG", gender: "M" },
+        { no: 34, id: "e20210086", name: "LONG RATANAKVICHEA", gender: "M" },
+        { no: 35, id: "e20210684", name: "LUN CHANPOLY", gender: "M" },
+        { no: 36, id: "e20211077", name: "LY SOKPHENG", gender: "M" },
+        { no: 37, id: "e20210359", name: "MA OUSA", gender: "M" },
+        { no: 38, id: "e20210207", name: "MAK NIMOL", gender: "F" },
+        { no: 39, id: "e20211621", name: "MAO SEDTHA", gender: "M" },
+        { no: 40, id: "e20210249", name: "MORK MONGKUL", gender: "M" },
+        { no: 41, id: "e20210134", name: "NGORN PANHA", gender: "M" },
+        { no: 42, id: "e20210490", name: "NOM MENGHOUY", gender: "F" },
+        { no: 43, id: "e20210635", name: "OEUN PAO", gender: "M" },
+        { no: 44, id: "e20211548", name: "PAV LIMSENG", gender: "M" },
+        { no: 45, id: "e20210072", name: "PEANG RATTANAK", gender: "M" },
+        { no: 46, id: "e20201314", name: "PEL BUNKHLOEM", gender: "M" },
+        { no: 47, id: "e20211572", name: "PEN VIRAK", gender: "M" },
+        { no: 48, id: "e20211154", name: "PHALLY MAKARA", gender: "M" },
+        { no: 49, id: "e20210227", name: "PHAO CHANTHIN", gender: "F" },
+      ];
+
+      // Define courses to match the table structure
+      const courses = [
+        { id: "Big Data_TP", name: "Big Data", type: "TP" },
+        { id: "Big Data_Course", name: "Big Data", type: "Course" },
+        { id: "PGM_TP", name: "PGM", type: "TP" },
+        { id: "PGM_Course", name: "PGM", type: "Course" },
+        { id: "Database_TP", name: "Database", type: "TP" },
+        { id: "Database_Course", name: "Database", type: "Course" },
+        { id: "Economics_Course", name: "Economics", type: "Course" },
+        { id: "Distributed_TP", name: "Distributed", type: "TP" },
+        { id: "Distributed_Course", name: "Distributed", type: "Course" },
+        { id: "Data Visualization_TP", name: "Data Visualization", type: "TP" },
+        {
+          id: "Data Visualization_Course",
+          name: "Data Visualization",
+          type: "Course",
+        },
+      ];
+
+      // Initialize attendance data
+      let attendanceData = [];
+
+      // Initialize from localStorage or generate
+      function initializeAttendanceData() {
+        const savedData = localStorage.getItem("attendanceData");
+        if (savedData) {
+          attendanceData = JSON.parse(savedData);
+        } else {
+          // Generate initial data with all present
+          students.forEach((student) => {
+            const studentCourses = {};
+            courses.forEach((course) => {
+              const attendance = {};
+              for (let week = 1; week <= 18; week++) {
+                attendance[`week${week}`] = "present";
+              }
+              studentCourses[course.id] = attendance;
+            });
+            attendanceData.push({
+              ...student,
+              courses: studentCourses,
+              totalAbsences: 0,
+            });
+          });
+          saveToLocalStorage();
+        }
+      }
+
+      function saveToLocalStorage() {
+        localStorage.setItem("attendanceData", JSON.stringify(attendanceData));
+      }
+
+      // Get all course header elements
+      const courseHeaders = document.querySelectorAll("th[data-course]");
+
+      // Populate Student Name filter dropdown
+      function populateStudentFilter() {
+        const studentFilter = document.getElementById("filter-student");
+        students.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.name;
+          studentFilter.appendChild(opt);
+        });
+      }
+
+      // Function to calculate overall attendance statistics
+      function calculateSemesterStats() {
+        let totalClasses = 0;
+        let totalAbsences = 0;
+        const courseStats = {};
+        const studentStats = {};
+
+        // Initialize course stats
+        courses.forEach((course) => {
+          courseStats[course.id] = {
+            present: 0,
+            absent: 0,
+            name: `${course.name} (${course.type})`,
+          };
+        });
+
+        // Initialize student stats
+        attendanceData.forEach((student) => {
+          studentStats[student.id] = {
+            name: student.name,
+            present: 0,
+            absent: 0,
+            totalAbsences: 0,
+          };
+        });
+
+        // Calculate stats
+        attendanceData.forEach((student) => {
+          courses.forEach((course) => {
+            const attendance = student.courses[course.id];
+            if (attendance) {
+              for (let week = 1; week <= 18; week++) {
+                const status = attendance[`week${week}`];
+                totalClasses++;
+                if (status === "present") {
+                  courseStats[course.id].present++;
+                  studentStats[student.id].present++;
+                } else {
+                  courseStats[course.id].absent++;
+                  studentStats[student.id].absent++;
+                  student.totalAbsences++;
+                  totalAbsences++;
+                }
+              }
+            }
+          });
+        });
+
+        // Update overall stats
+        document.getElementById("total-classes").textContent = totalClasses;
+        document.getElementById("total-absences").textContent = totalAbsences;
+
+        const attendanceRate =
+          totalClasses > 0
+            ? Math.round(
+                ((totalClasses - totalAbsences) / totalClasses) * 1000
+              ) / 10
+            : 0;
+
+        document.getElementById(
+          "attendance-rate"
+        ).textContent = `${attendanceRate}%`;
+        document.getElementById(
+          "attendance-progress"
+        ).style.width = `${attendanceRate}%`;
+        document.getElementById(
+          "overall-attendance"
+        ).textContent = `${attendanceRate}%`;
+
+        // Update course attendance
+        const courseAttendanceEl = document.getElementById("course-attendance");
+        courseAttendanceEl.innerHTML = "";
+        courses.forEach((course) => {
+          const stat = courseStats[course.id];
+          if (stat) {
+            const total = stat.present + stat.absent;
+            const rate =
+              total > 0 ? Math.round((stat.present / total) * 1000) / 10 : 0;
+
+            const row = document.createElement("div");
+            row.className = "course-row";
+            row.innerHTML = `
+                        <span>${stat.name}</span>
+                        <span>${rate}%</span>
+                    `;
+
+            const progress = document.createElement("div");
+            progress.className = "progress-bar";
+            progress.innerHTML = `<div class="progress" style="width: ${rate}%"></div>`;
+
+            courseAttendanceEl.appendChild(row);
+            courseAttendanceEl.appendChild(progress);
+          }
+        });
+
+        // Update top students
+        const sortedStudents = Object.values(studentStats)
+          .sort(
+            (a, b) =>
+              b.present / (b.present + b.absent) -
+              a.present / (a.present + a.absent)
+          )
+          .slice(0, 5);
+
+        const topStudentsEl = document.getElementById("top-students");
+        topStudentsEl.innerHTML = "";
+        sortedStudents.forEach((student, index) => {
+          const total = student.present + student.absent;
+          const rate =
+            total > 0 ? Math.round((student.present / total) * 1000) / 10 : 0;
+
+          const row = document.createElement("div");
+          row.className = "course-row";
+          row.innerHTML = `
+                    <span>${index + 1}. ${student.name}</span>
+                    <span>${rate}%</span>
+                `;
+
+          topStudentsEl.appendChild(row);
+        });
+      }
+
+      // Function to render table rows based on filtered data
+      function renderTable(week = 8, studentList = attendanceData) {
+        const tableBody = document.querySelector("#attendance-table tbody");
+        tableBody.innerHTML = "";
+
+        studentList.forEach((student) => {
+          const tr = document.createElement("tr");
+
+          // Student info
+          tr.innerHTML = `<td>${student.id}</td><td>${student.name}</td>`;
+
+          // Course attendance - match table columns to course data
+          courseHeaders.forEach((header) => {
+            const courseName = header.dataset.course;
+            const type = header.dataset.type;
+
+            // Find matching course
+            const course = courses.find(
+              (c) => c.name === courseName && c.type === type
+            );
+
+            const td = document.createElement("td");
+            td.classList.add("attendance-cell");
+
+            if (course && student.courses[course.id]) {
+              const status = student.courses[course.id][`week${week}`];
+              td.textContent = status === "present" ? "✓" : "✗";
+              td.classList.add(status);
+              td.dataset.course = course.name;
+              td.dataset.type = course.type;
+            } else {
+              td.textContent = "N/A";
+            }
+            tr.appendChild(td);
+          });
+
+          // Total absent for the semester
+          const totalCell = document.createElement("td");
+          totalCell.textContent = student.totalAbsences;
+          tr.appendChild(totalCell);
+
+          tableBody.appendChild(tr);
+        });
+
+        document.getElementById("total-students").textContent =
+          studentList.length;
+      }
+
+      // Function to calculate absences for the current week
+      function calculateAbsentThisWeek(week, studentList) {
+        let absentCount = 0;
+
+        studentList.forEach((student) => {
+          courses.forEach((course) => {
+            const attendance = student.courses[course.id];
+            if (attendance && attendance[`week${week}`] === "absent") {
+              absentCount++;
+            }
+          });
+        });
+
+        return absentCount;
+      }
+
+      // Function to apply all filters
+      function applyFilters() {
+        const courseFilter = document.getElementById("filter-course").value;
+        const typeFilter = document.getElementById("filter-type").value;
+        const semesterFilter = document.getElementById("filter-semester").value;
+        const studentFilter = document.getElementById("filter-student").value;
+        const searchFilter = document
+          .getElementById("search-name")
+          .value.toLowerCase();
+
+        const activeWeekBtn = document.querySelector(".week-btn.active");
+        const week = activeWeekBtn
+          ? parseInt(activeWeekBtn.textContent.split(" ")[1])
+          : 8;
+
+        // Filter by student
+        let filteredStudents = attendanceData;
+
+        if (studentFilter) {
+          filteredStudents = filteredStudents.filter(
+            (s) => s.id === studentFilter
+          );
+        }
+
+        // Filter by search term
+        if (searchFilter) {
+          filteredStudents = filteredStudents.filter((s) =>
+            s.name.toLowerCase().includes(searchFilter)
+          );
+        }
+
+        // Render the table with filtered students
+        renderTable(week, filteredStudents);
+
+        // Calculate absences for the current week
+        const absentCount = calculateAbsentThisWeek(week, filteredStudents);
+        document.getElementById("absent-this-week").textContent = absentCount;
+
+        // Apply course and type column filtering
+        const headers = document.querySelectorAll("#attendance-table th");
+
+        // Always show ID (0), Name (1), and Total Absent (last) columns
+        headers[0].style.display = "";
+        headers[1].style.display = "";
+        headers[headers.length - 1].style.display = "";
+
+        // Show/hide course columns based on filters
+        courseHeaders.forEach((header, index) => {
+          // +2 offset for ID and Name columns
+          const colIndex = index + 2;
+          const courseName = header.dataset.course;
+          const courseType = header.dataset.type;
+
+          let showColumn = true;
+
+          // Apply course filter
+          if (courseFilter && courseFilter !== courseName) {
+            showColumn = false;
+          }
+
+          // Apply type filter
+          if (typeFilter && typeFilter !== courseType) {
+            showColumn = false;
+          }
+
+          header.style.display = showColumn ? "" : "none";
+
+          // Apply to all body cells in this column
+          document
+            .querySelectorAll(`#attendance-table tbody tr`)
+            .forEach((row) => {
+              if (row.cells[colIndex]) {
+                row.cells[colIndex].style.display = showColumn ? "" : "none";
+              }
+            });
+        });
+
+        // Update active filters display
+        updateActiveFilters();
+      }
+
+      // Function to update active filters display
+      function updateActiveFilters() {
+        const courseFilter = document.getElementById("filter-course").value;
+        const typeFilter = document.getElementById("filter-type").value;
+        const semesterFilter = document.getElementById("filter-semester").value;
+        const studentFilter = document.getElementById("filter-student").value;
+        const searchFilter = document.getElementById("search-name").value;
+
+        const activeFilters = [];
+
+        if (courseFilter) activeFilters.push(`Course: ${courseFilter}`);
+        if (typeFilter) activeFilters.push(`Type: ${typeFilter}`);
+        if (semesterFilter !== "Semester 1")
+          activeFilters.push(`Semester: ${semesterFilter}`);
+        if (studentFilter) {
+          const student = students.find((s) => s.id === studentFilter);
+          if (student) activeFilters.push(`Student: ${student.name}`);
+        }
+        if (searchFilter) activeFilters.push(`Search: "${searchFilter}"`);
+
+        const activeFiltersEl = document.getElementById("active-filters");
+        if (activeFilters.length) {
+          activeFiltersEl.textContent = `Filters: ${activeFilters.join(", ")}`;
+          activeFiltersEl.style.display = "block";
+        } else {
+          activeFiltersEl.style.display = "none";
+        }
+      }
+
+      // Admin functions
+      function loadAttendanceForEdit() {
+        const course = document.getElementById("admin-course").value;
+        const type = document.getElementById("admin-type").value;
+        const week = document.getElementById("admin-week").value;
+        const semester = document.getElementById("admin-semester").value;
+
+        const adminBody = document.getElementById("admin-attendance-body");
+        adminBody.innerHTML = "";
+
+        attendanceData.forEach((student) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td class="attendance-options">
+                        <div class="attendance-option">
+                            <input type="radio" name="attendance-${student.id}" 
+                                   id="present-${student.id}" value="present" checked>
+                            <label for="present-${student.id}">Present</label>
+                        </div>
+                        <div class="attendance-option">
+                            <input type="radio" name="attendance-${student.id}" 
+                                   id="absent-${student.id}" value="absent">
+                            <label for="absent-${student.id}">Absent</label>
+                        </div>
+                    </td>
+                `;
+          adminBody.appendChild(tr);
+        });
+      }
+
+      function saveAttendance() {
+        const course = document.getElementById("admin-course").value;
+        const type = document.getElementById("admin-type").value;
+        const week = document.getElementById("admin-week").value;
+        const semester = document.getElementById("admin-semester").value;
+
+        const courseId = `${course}_${type}`;
+        const weekKey = `week${week}`;
+
+        attendanceData.forEach((student) => {
+          const attendanceStatus = document.querySelector(
+            `input[name="attendance-${student.id}"]:checked`
+          ).value;
+
+          if (student.courses[courseId]) {
+            student.courses[courseId][weekKey] = attendanceStatus;
+          }
+        });
+
+        saveToLocalStorage();
+        alert("Attendance records saved successfully!");
+        applyFilters();
+        calculateSemesterStats();
+      }
+
+      // View switching
+      function switchView(view) {
+        if (view === "dashboard") {
+          document.getElementById("dashboardContent").style.display = "block";
+          document.getElementById("adminPanel").style.display = "none";
+          document
+            .querySelector('[data-view="dashboard"]')
+            .classList.add("active");
+          document
+            .querySelector('[data-view="admin"]')
+            .classList.remove("active");
+        } else if (view === "admin") {
+          document.getElementById("dashboardContent").style.display = "none";
+          document.getElementById("adminPanel").style.display = "block";
+          document
+            .querySelector('[data-view="dashboard"]')
+            .classList.remove("active");
+          document.querySelector('[data-view="admin"]').classList.add("active");
+          loadAttendanceForEdit();
+        }
+      }
+
+      // Login function
+      function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        // Simple authentication (in a real app, this would be server-side)
+        if (username === "admin" && password === "admin123") {
+          document.getElementById("loginModal").style.display = "none";
+          switchView("admin");
+        } else {
+          alert("Invalid credentials. Please try again.");
+        }
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeAttendanceData();
+        populateStudentFilter();
+        calculateSemesterStats();
+        applyFilters();
+
+        // Add event listeners for view switching
+        document.querySelectorAll(".nav-link[data-view]").forEach((link) => {
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (this.dataset.view === "admin") {
+              document.getElementById("loginModal").style.display = "flex";
+            } else {
+              switchView(this.dataset.view);
+            }
+          });
+        });
+
+        // Week selector functionality
+        document.querySelectorAll(".week-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            document
+              .querySelectorAll(".week-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            applyFilters();
+          });
+        });
+
+        // Course tabs functionality
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            document
+              .querySelectorAll(".tab")
+              .forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            // Set the course filter
+            const course = tab.dataset.course;
+            if (course === "all") {
+              document.getElementById("filter-course").value = "";
+            } else {
+              document.getElementById("filter-course").value = course;
+            }
+
+            applyFilters();
+          });
+        });
+
+        // Filter functionality
+        document
+          .getElementById("filter-course")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-type")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-semester")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-student")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("search-name")
+          .addEventListener("input", applyFilters);
+
+        // Reset filters on Escape
+        document
+          .getElementById("search-name")
+          .addEventListener("keyup", function (e) {
+            if (e.key === "Escape") {
+              this.value = "";
+              applyFilters();
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
